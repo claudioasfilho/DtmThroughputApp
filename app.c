@@ -82,11 +82,11 @@ void initDTM(void)
 
 int startDTMTest(void)
 {
-
 	DTM.Result.Value = 0;
   //It starts the Soft timer (1s, Handle 0, Non-Stop)
 	gecko_cmd_hardware_set_soft_timer(32768, 1, 0);
 	gecko_cmd_test_dtm_tx(DTM.PacketType,DTM.PacketSize,DTM.Channel,DTM.PHY);
+	DTM.OnFlag = 1;
 	return 1;
 }
 
@@ -141,20 +141,21 @@ void appHandleEvents(struct gecko_cmd_packet *evt)
       case gecko_evt_hardware_soft_timer_id:
         {
           //DTM test is on Handle 1
-
-          //if (evt->data.evt_hardware_soft_timer.handle == 1)
+          if (evt->data.evt_hardware_soft_timer.handle == 1)
           {
-						printf("Soft Timer Handle %d ",evt->data.evt_hardware_soft_timer.handle);
-            if (TimerCounter++==DTM.TestTime.Value)
+						//printf("Soft Timer Handle %d ",evt->data.evt_hardware_soft_timer.handle);
+            if ((TimerCounter++==DTM.TestTime.Value) && (	DTM.OnFlag == 1))
             {
 							printf("DTM test Completed\n");
-              gecko_cmd_hardware_set_soft_timer(0, 0, 0);
+              gecko_cmd_hardware_set_soft_timer(0, 1, 0);
               TimerCounter =0;
               gecko_cmd_test_dtm_end();
               TimerFlag = 1;
+							DTM.OnFlag = 0;
             }
+						printf("Soft Timer %d\n",TimerCounter );
           }
-					printf("Soft Timer %d\n",TimerCounter );
+
         }
         break;
 
@@ -163,9 +164,8 @@ void appHandleEvents(struct gecko_cmd_packet *evt)
         				if ( TimerFlag == 1)
         				{
         					DTM.Result.Value = evt->data.evt_test_dtm_completed.number_of_packets;
-        					DTM.OnFlag = 0;
-        					 TimerFlag = 0;
 
+        					 TimerFlag = 0;
 
         					//gecko_cmd_system_reset(0);
 
@@ -174,7 +174,7 @@ void appHandleEvents(struct gecko_cmd_packet *evt)
         				    		DTM.PacketType = 254;
         				    		DTM.TestTime.Value = 300;
         				    		DTM.ToneFlag = 0;
-        				        	gecko_cmd_hardware_set_soft_timer(32768, 0, 0);
+        				        	gecko_cmd_hardware_set_soft_timer(32768, 1, 0);
         				        	gecko_cmd_test_dtm_tx(DTM.PacketType,DTM.PacketSize,DTM.Channel,DTM.PHY);
         				    	}
 

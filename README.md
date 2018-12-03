@@ -1,6 +1,10 @@
-# BLE Central Client device
+# DtmThroughputApp
 
 How it works:
+
+This code will run a Bluetooth DTM test, for 10 Seconds, the amount of time is determined by "DTM.TestTime.Value" variable at app.c. The DTM test parameters can also be configured at the initDTM() on app.c.
+
+
 
 This code was based on the following Knowledge Base Article from Silicon Labs:
 
